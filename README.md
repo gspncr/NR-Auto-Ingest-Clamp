@@ -56,3 +56,13 @@ You should limit inbound access to this IP pool.
 
 ### Basic Auth
 New Relic Alerts Webhooks also support basic auth. You could use the package `express-basic-auth` to implement such. This is easy to do, [see their docs on npm](https://www.npmjs.com/package/express-basic-auth).
+
+## Example NR Alert Policy
+
+> Remember that NR notification channels are at a policy level, not condition. So you will need to have many separate policies to prevent the different conditions setting off one anothers clamping webhooks. So for instance a "Prometheus Clamp policy" will map into a "prometheus clamp webhook", a "Logs Clamp policy" into a "logs clamp webhook" so you will need to create a fair few policies and notification channels because of this design.
+
+1. NRQL based condition: `SELECT nativesizeestimate() from Log` -> will return size in bytes You could do `SELECT nativesizeestimate()/1e+9 from Log` to have this return a GB number if you have wider logs usage than my sample account. You could also use other events such as the `NrConsumption` table which tracks at an hourly basis.
+
+2. You should then set a critical threshold to be the level you wish to introduce the clamp. NR Alerts will only send a notification to a webhook at the critical threshold, so keep that in mind that the warning level won't trigger any notification channels.
+
+3. Set a notification channel for this. Mine looks like `http://myclampingapp.elasticbeanstalk.com/setDropRule?accountID=1147177&description=i am testing&rule=SELECT * FROM Log WHERE app = 'garySpencer'`
